@@ -95,14 +95,18 @@ struct rs_job {
     rs_long_t   copy_len;
 
     /** Copy from the basis position. */
-    rs_long_t       basis_pos, basis_len;
-
+    rs_long_t       basis_pos, basis_len; 
+    
     /** Callback used to copy data from the basis into the output. */
     rs_copy_cb      *copy_cb;
     void            *copy_arg;
 
+    rs_progress_t   progress;
+    rs_progress_cb  progress_cb; 
 };
 
+
+void updateProgress(rs_job_t *job);
 
 rs_job_t * rs_job_new(const char *, rs_result (*statefn)(rs_job_t *));
 

@@ -155,13 +155,18 @@ rs_delta_file(rs_signature_t *sig, FILE *new_file, FILE *delta_file,
 }
 
 
-rs_result rs_patch_file(FILE *basis_file, FILE *delta_file, FILE *new_file,
-                        rs_stats_t *stats)
+rs_result rs_patch_file(FILE *basis_file, FILE *delta_file, FILE *new_file,  
+                            rs_long_t new_file_size, rs_stats_t *stats, rs_progress_t *progress, void *opaque)
 {
     rs_job_t            *job;
     rs_result           r;
 
-    job = rs_patch_begin(rs_file_copy_cb, basis_file);
+    job = rs_patch_begin(rs_file_copy_cb, basis_file); 
+    job->progress.expected = new_file_size;
+    job->progress.out_file = new_file;
+    job->progress.opaque = opaque;
+    job->progress.processed = 0;
+    job->progress_cb = progress;
     /* Default size inbuf and outbuf 64K. */
     r = rs_whole_run(job, delta_file, new_file, 64*1024, 64*1024);
     if (stats)

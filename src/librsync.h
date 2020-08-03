@@ -421,6 +421,14 @@ typedef struct rs_buffers_s rs_buffers_t;
  */
 typedef struct rs_job rs_job_t;
 
+struct rs_progress {
+    FILE        *out_file;
+    void        *opaque;
+    rs_long_t   processed;
+    rs_long_t   expected;
+};
+typedef struct rs_progress rs_progress_t;
+typedef void (*rs_progress_cb) (rs_progress_t*);
 
 /**
  * \brief Run a ::rs_job state machine until it blocks
@@ -624,7 +632,7 @@ rs_result rs_delta_file(rs_signature_t *, FILE *new_file, FILE *delta_file, rs_s
  * Apply a patch, relative to a basis, into a new file.
  * \sa \ref api_whole
  */
-rs_result rs_patch_file(FILE *basis_file, FILE *delta_file, FILE *new_file, rs_stats_t *);
+rs_result rs_patch_file(FILE *basis_file, FILE *delta_file, FILE *new_file,  rs_long_t new_file_size, rs_stats_t *stats, rs_progress_t *progress, void *opaque);
 #endif /* ! RSYNC_NO_STDIO_INTERFACE */
 
 #ifdef __cplusplus

@@ -20,6 +20,7 @@ project(librsync C)
 cmake_minimum_required(VERSION 2.6)
 
 INCLUDE(CMakeDependentOption)
+include(GNUInstallDirs)
 
 set(LIBRSYNC_MAJOR_VERSION 2)
 set(LIBRSYNC_MINOR_VERSION 0)
@@ -124,11 +125,11 @@ if(APPLE)
   set(CMAKE_MACOSX_RPATH ON)
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
   set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-  list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+  list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" isSystemDir)
   if("${isSystemDir}" STREQUAL "-1")
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
   endif()
 endif()
 
@@ -218,6 +219,11 @@ endif (USE_LIBB2)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src)
 execute_process(COMMAND ${PERL_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/src/mkprototab.pl" "${CMAKE_CURRENT_BINARY_DIR}/src/prototab.c" "${CMAKE_CURRENT_BINARY_DIR}/src/prototab.h")
 
+
+add_executable(test_app_build test_app/main.c)
+target_include_directories(test_app_build PUBLIC ../src)
+target_link_libraries(test_app_build rsync)
+
 # Testing
 
 add_executable(isprefix_test
@@ -265,7 +271,7 @@ else (BUILD_RDIFF)
   set(LAST_TARGET rsync)
 endif (BUILD_RDIFF)
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
-add_dependencies(check ${LAST_TARGET} isprefix_test rollsum_test hashtable_test sumset_test)
+add_dependencies(check ${LAST_TARGET} test_app_build isprefix_test rollsum_test hashtable_test sumset_test)
 
 
 enable_testing()
@@ -332,7 +338,7 @@ endif (ENABLE_COMPRESSION)
 
 set_target_properties(rsync PROPERTIES VERSION ${LIBRSYNC_VERSION}
         SOVERSION ${LIBRSYNC_MAJOR_VERSION})
-install(TARGETS rsync ${INSTALL_TARGETS_DEFAULT_ARGS} DESTINATION lib)
+install(TARGETS rsync ${INSTALL_TARGETS_DEFAULT_ARGS} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 
 ########### next target ###############
@@ -349,7 +355,7 @@ if (BUILD_RDIFF)
     message (WARNING "Popt library is required for rdiff target")
   endif (POPT_FOUND)
 
-  install(TARGETS rdiff ${INSTALL_TARGETS_DEFAULT_ARGS} DESTINATION bin)
+  install(TARGETS rdiff ${INSTALL_TARGETS_DEFAULT_ARGS} DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif (BUILD_RDIFF)
 
 
@@ -357,7 +363,7 @@ endif (BUILD_RDIFF)
 
 install(FILES
         src/librsync.h
-        DESTINATION include)
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 message (STATUS "CMAKE_C_FLAGS  = ${CMAKE_C_FLAGS}")
 

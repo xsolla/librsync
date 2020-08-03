@@ -180,9 +180,9 @@ rs_job_drive(rs_job_t *job, rs_buffers_t *buf,
     rs_result       result, iores;
 
     rs_bzero(buf, sizeof *buf);
-
+   
     do {
-        if (!buf->eof_in && in_cb) {
+		if (!buf->eof_in && in_cb) {
             iores = in_cb(job, buf, in_opaque);
             if (iores != RS_DONE)
                 return iores;
@@ -197,7 +197,16 @@ rs_job_drive(rs_job_t *job, rs_buffers_t *buf,
             if (iores != RS_DONE)
                 return iores;
         }
-    } while (result != RS_DONE);
+        updateProgress(job);
 
+    } while (result != RS_DONE);
+        updateProgress(job);
     return result;
+}
+
+void updateProgress(rs_job_t *job) {
+    if (job->progress_cb) {
+        job->progress.processed = job->stats.out_bytes;
+        job->progress_cb(&job->progress); 
+    }
 }

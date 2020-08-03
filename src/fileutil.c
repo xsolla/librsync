@@ -107,7 +107,7 @@ FILE *rs_file_open(char const *filename, char const *mode, int force)
 	    // File exists
 	    rs_error("File exists \"%s\", aborting!", filename);
 	    fclose(f);
-	    exit(RS_IO_ERROR);
+		return NULL;
 	}
     }
 
@@ -115,11 +115,49 @@ FILE *rs_file_open(char const *filename, char const *mode, int force)
 	rs_error("Error opening \"%s\" for %s: %s", filename,
 		  is_write ? "write" : "read",
 		  strerror(errno));
-	exit(RS_IO_ERROR);
+		  return NULL;
     }
 
     return f;
 }
+
+#if _WIN32
+FILE *rs_file_open_ws(const wchar_t *filename, const wchar_t *mode, int force) {
+	FILE           *f = NULL;
+	bool		    is_write;
+
+	is_write = mode[0] == 'w';
+
+	if (!filename || !strcmp("-", filename)) {
+		if (is_write) {
+			_setmode(_fileno(stdout), _O_BINARY);
+			return stdout;
+		}
+		else {
+			_setmode(_fileno(stdin), _O_BINARY);
+			return stdin;
+		}
+	}
+
+	if (!force && is_write) {
+		if ((f = _wfopen(filename, L"rb"))) {
+			// File exists
+			rs_error("File exists \"%s\", aborting!", filename);
+			fclose(f);
+			return NULL;
+		}
+	}
+
+	if (!(f = _wfopen(filename, mode))) {
+		rs_error("Error opening \"%s\" for %s: %s", filename,
+			is_write ? "write" : "read",
+			strerror(errno));
+			return NULL;
+	}
+
+	return f;
+}
+#endif
 
 int rs_file_close(FILE * f)
 {
@@ -139,7 +177,7 @@ rs_result rs_file_copy_cb(void *arg, rs_long_t pos, size_t *len, void **buf)
 {
     int        got;
     FILE       *f = (FILE *) arg;
-
+	rewind(f);
     if (fseek(f, pos, SEEK_SET)) {
         rs_error("seek failed: %s", strerror(errno));
         return RS_IO_ERROR;

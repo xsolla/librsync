@@ -156,6 +156,7 @@ static void rs_tube_catchup_copy(rs_job_t *job)
         size_t this_copy = rs_buffers_copy(job->stream, job->copy_len);
         job->copy_len -= this_copy;
         rs_trace("copied "FMT_SIZE" bytes from input buffer, "FMT_LONG" remain to be copied", this_copy, job->copy_len);
+        rs_trace("in_bytes %i  out_bytes %i", job->stats.in_bytes, job->stats.out_bytes);
     }
 }
 
